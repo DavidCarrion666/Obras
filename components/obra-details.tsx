@@ -219,7 +219,7 @@ export function ObraDetails({ obra, onBack }: ObraDetailsProps) {
       <h2 className="text-2xl font-bold mb-4">{obra.nombre}</h2>
       <Tabs defaultValue="recursos">
         <TabsList>
-          <TabsTrigger value="recursos">Recursos</TabsTrigger>
+          <TabsTrigger value="Cronograma">Recursos</TabsTrigger>
           <TabsTrigger value="presupuesto">Presupuesto</TabsTrigger>
           <TabsTrigger value="contratos">Contratos</TabsTrigger>
           <TabsTrigger value="inspeccion">Inspección</TabsTrigger>
