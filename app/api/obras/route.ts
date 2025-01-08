@@ -1,20 +1,6 @@
 import { NextResponse } from "next/server";
-import dbConnect from "@/config/database";
+import dbConnect from "@/lib/database";
 import Obra from "@/models/Obra";
-
-export async function GET() {
-  try {
-    await dbConnect();
-    const obras = await Obra.find({});
-    return NextResponse.json(obras);
-  } catch (error) {
-    console.error("Error fetching obras:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
 
 export async function POST(request: Request) {
   try {
@@ -26,7 +12,21 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Error creating obra:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal Server Error", details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    await dbConnect();
+    const obras = await Obra.find({});
+    return NextResponse.json(obras);
+  } catch (error) {
+    console.error("Error fetching obras:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error.message },
       { status: 500 }
     );
   }

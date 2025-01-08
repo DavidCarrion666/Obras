@@ -2,13 +2,15 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/database";
 import Obra from "@/models/Obra";
 
-export async function GET(
+export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     await dbConnect();
     const { id } = params;
+    const { nombre, latitud, longitud } = await request.json();
+
     const obra = await Obra.findById(id);
     if (!obra) {
       return NextResponse.json(
@@ -16,9 +18,16 @@ export async function GET(
         { status: 404 }
       );
     }
-    return NextResponse.json(obra);
+
+    obra.ubicaciones.push({ nombre, latitud, longitud });
+    await obra.save();
+
+    return NextResponse.json({
+      message: "Ubicación añadida correctamente",
+      ubicacion: obra.ubicaciones[obra.ubicaciones.length - 1],
+    });
   } catch (error) {
-    console.error("Error fetching obra:", error);
+    console.error("Error adding ubicacion:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
@@ -26,46 +35,28 @@ export async function GET(
   }
 }
 
-export async function PATCH(
+export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     await dbConnect();
     const { id } = params;
-    const body = await request.json();
 
-    // Remove undefined fields
-    Object.keys(body).forEach(
-      (key) => body[key] === undefined && delete body[key]
-    );
-
-    const updatedObra = await Obra.findByIdAndUpdate(id, body, {
-      new: true,
-      runValidators: true,
-      setDefaultsOnInsert: true,
-    });
-
-    if (!updatedObra) {
+    const obra = await Obra.findById(id);
+    if (!obra) {
       return NextResponse.json(
         { error: "Obra no encontrada" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(updatedObra);
+    return NextResponse.json(obra.ubicaciones);
   } catch (error) {
-    console.error("Error updating obra:", error);
+    console.error("Error fetching ubicaciones:", error);
     return NextResponse.json(
-      { error: "Internal Server Error", details: error.message },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
-}
-
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  return PATCH(request, { params });
 }

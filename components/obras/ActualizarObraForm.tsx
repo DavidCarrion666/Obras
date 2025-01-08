@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 interface Obra {
   _id: string;
@@ -28,8 +29,22 @@ interface Obra {
   descripcionObra: string;
   estadoObra: string;
   tipoIntervencion: string;
-  ubicacion: string;
+  cup: string;
+  ubicaciones: Array<{
+    nombre: string;
+    latitud: number;
+    longitud: number;
+  }>;
   fecha_inicio: string;
+  fecha_fin?: string;
+  presupuesto: number;
+  actividades: Array<{
+    actividad: string;
+    observacion: string;
+    completada: boolean;
+  }>;
+  devengadoTotal?: number;
+  porcentajeAvance?: number;
 }
 
 interface ActualizarObraFormProps {
@@ -37,6 +52,39 @@ interface ActualizarObraFormProps {
   onObraActualizada: () => void;
   onCancel: () => void;
 }
+
+const tiposIntervencion = [
+  "Construcción",
+  "Adecentamiento",
+  "Repotenciación",
+  "Reconstrucción",
+  "Rehabilitación",
+  "Reapertura",
+];
+
+const categorias = [
+  "Agua y Saneamiento",
+  "Centros de Desarrollo Infantil",
+  "Centros de Salud",
+  "Estratégicos",
+  "Generación eléctrica",
+  "Hospitales",
+  "Infraestructura Cultural",
+  "Infraestructura Deportiva",
+  "Infraestructura Productiva",
+  "Infraestructura Turística",
+  "Infraestructura Urbana",
+  "Institutos Multipropósito",
+  "Otros",
+  "Parques",
+  "Puestos de Salud",
+  "Reasentamientos",
+  "Seguridad",
+  "Unidades Educativas",
+  "Universidades",
+  "Vialidad",
+  "Vivienda",
+];
 
 export function ActualizarObraForm({
   obra,
@@ -48,19 +96,25 @@ export function ActualizarObraForm({
     motivoActualizacion: "",
   });
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
       const response = await fetch(`/api/obras/${obra._id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
       if (response.ok) {
         const updatedObra = await response.json();
         onObraActualizada();
+        toast({
+          title: "Obra Actualizada",
+          description: "La obra ha sido actualizada exitosamente.",
+          variant: "success",
+        });
       } else {
         const errorData = await response.json();
         throw new Error(errorData.error || "Error al actualizar la obra");
@@ -72,6 +126,11 @@ export function ActualizarObraForm({
           ? error.message
           : "Error desconocido al actualizar la obra"
       );
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar la obra.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -84,9 +143,9 @@ export function ActualizarObraForm({
   };
 
   return (
-    <Card>
+    <Card className="border-gray-200">
       <CardHeader>
-        <CardTitle>Actualizar Obra</CardTitle>
+        <CardTitle className="text-gray-800">Actualizar Obra</CardTitle>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -114,13 +173,25 @@ export function ActualizarObraForm({
           </div>
           <div className="space-y-2">
             <Label htmlFor="categoria">Categoría</Label>
-            <Input
-              id="categoria"
+            <Select
               name="categoria"
               value={formData.categoria}
-              onChange={handleChange}
+              onValueChange={(value) =>
+                handleChange({ target: { name: "categoria", value } } as any)
+              }
               required
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione una categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                {categorias.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="descripcionObra">Descripción de la Obra</Label>
@@ -155,20 +226,34 @@ export function ActualizarObraForm({
           </div>
           <div className="space-y-2">
             <Label htmlFor="tipoIntervencion">Tipo de Intervención</Label>
-            <Input
-              id="tipoIntervencion"
+            <Select
               name="tipoIntervencion"
               value={formData.tipoIntervencion}
-              onChange={handleChange}
+              onValueChange={(value) =>
+                handleChange({
+                  target: { name: "tipoIntervencion", value },
+                } as any)
+              }
               required
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione un tipo de intervención" />
+              </SelectTrigger>
+              <SelectContent>
+                {tiposIntervencion.map((tipo) => (
+                  <SelectItem key={tipo} value={tipo}>
+                    {tipo}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="ubicacion">Ubicación</Label>
+            <Label htmlFor="cup">CUP (Código Único de Proyecto)</Label>
             <Input
-              id="ubicacion"
-              name="ubicacion"
-              value={formData.ubicacion}
+              id="cup"
+              name="cup"
+              value={formData.cup}
               onChange={handleChange}
               required
             />
@@ -180,6 +265,27 @@ export function ActualizarObraForm({
               name="fecha_inicio"
               type="date"
               value={formData.fecha_inicio.split("T")[0]}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="fecha_fin">Fecha de Fin (opcional)</Label>
+            <Input
+              id="fecha_fin"
+              name="fecha_fin"
+              type="date"
+              value={formData.fecha_fin ? formData.fecha_fin.split("T")[0] : ""}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="presupuesto">Presupuesto</Label>
+            <Input
+              id="presupuesto"
+              name="presupuesto"
+              type="number"
+              value={formData.presupuesto}
               onChange={handleChange}
               required
             />
@@ -199,10 +305,20 @@ export function ActualizarObraForm({
           {error && <div className="text-red-500">{error}</div>}
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="border-gray-300 text-gray-600 hover:bg-gray-100"
+          >
             Cancelar
           </Button>
-          <Button type="submit">Actualizar Obra</Button>
+          <Button
+            type="submit"
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            Actualizar Obra
+          </Button>
         </CardFooter>
       </form>
     </Card>

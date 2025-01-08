@@ -19,11 +19,45 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 interface CrearObraFormProps {
   onObraCreated: () => void;
   onCancel: () => void;
 }
+
+const tiposIntervencion = [
+  "Construcción",
+  "Adecentamiento",
+  "Repotenciación",
+  "Reconstrucción",
+  "Rehabilitación",
+  "Reapertura",
+];
+
+const categorias = [
+  "Agua y Saneamiento",
+  "Centros de Desarrollo Infantil",
+  "Centros de Salud",
+  "Estratégicos",
+  "Generación eléctrica",
+  "Hospitales",
+  "Infraestructura Cultural",
+  "Infraestructura Deportiva",
+  "Infraestructura Productiva",
+  "Infraestructura Turística",
+  "Infraestructura Urbana",
+  "Institutos Multipropósito",
+  "Otros",
+  "Parques",
+  "Puestos de Salud",
+  "Reasentamientos",
+  "Seguridad",
+  "Unidades Educativas",
+  "Universidades",
+  "Vialidad",
+  "Vivienda",
+];
 
 export function CrearObraForm({ onObraCreated, onCancel }: CrearObraFormProps) {
   const [formData, setFormData] = useState({
@@ -33,10 +67,15 @@ export function CrearObraForm({ onObraCreated, onCancel }: CrearObraFormProps) {
     descripcionObra: "",
     estadoObra: "",
     tipoIntervencion: "",
-    ubicacion: "",
+    cup: "",
+    ubicaciones: [],
     fecha_inicio: "",
+    fecha_fin: "",
+    presupuesto: 0,
+    actividades: [],
   });
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +89,10 @@ export function CrearObraForm({ onObraCreated, onCancel }: CrearObraFormProps) {
       if (response.ok) {
         const newObra = await response.json();
         onObraCreated();
+        toast({
+          title: "Obra Creada",
+          description: "La obra ha sido creada exitosamente.",
+        });
       } else {
         const errorData = await response.json();
         throw new Error(errorData.error || "Error al crear la obra");
@@ -61,6 +104,11 @@ export function CrearObraForm({ onObraCreated, onCancel }: CrearObraFormProps) {
           ? error.message
           : "Error desconocido al crear la obra"
       );
+      toast({
+        title: "Error",
+        description: "Hubo un problema al crear la obra.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -73,9 +121,9 @@ export function CrearObraForm({ onObraCreated, onCancel }: CrearObraFormProps) {
   };
 
   return (
-    <Card>
+    <Card className="border-gray-200">
       <CardHeader>
-        <CardTitle>Crear Nueva Obra</CardTitle>
+        <CardTitle className="text-gray-800">Crear Nueva Obra</CardTitle>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -103,13 +151,25 @@ export function CrearObraForm({ onObraCreated, onCancel }: CrearObraFormProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="categoria">Categoría</Label>
-            <Input
-              id="categoria"
+            <Select
               name="categoria"
               value={formData.categoria}
-              onChange={handleChange}
+              onValueChange={(value) =>
+                handleChange({ target: { name: "categoria", value } } as any)
+              }
               required
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione una categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                {categorias.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="descripcionObra">Descripción de la Obra</Label>
@@ -144,20 +204,34 @@ export function CrearObraForm({ onObraCreated, onCancel }: CrearObraFormProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="tipoIntervencion">Tipo de Intervención</Label>
-            <Input
-              id="tipoIntervencion"
+            <Select
               name="tipoIntervencion"
               value={formData.tipoIntervencion}
-              onChange={handleChange}
+              onValueChange={(value) =>
+                handleChange({
+                  target: { name: "tipoIntervencion", value },
+                } as any)
+              }
               required
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione un tipo de intervención" />
+              </SelectTrigger>
+              <SelectContent>
+                {tiposIntervencion.map((tipo) => (
+                  <SelectItem key={tipo} value={tipo}>
+                    {tipo}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="ubicacion">Ubicación</Label>
+            <Label htmlFor="cup">CUP (Código Único de Proyecto)</Label>
             <Input
-              id="ubicacion"
-              name="ubicacion"
-              value={formData.ubicacion}
+              id="cup"
+              name="cup"
+              value={formData.cup}
               onChange={handleChange}
               required
             />
@@ -173,13 +247,44 @@ export function CrearObraForm({ onObraCreated, onCancel }: CrearObraFormProps) {
               required
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="fecha_fin">Fecha de Fin (opcional)</Label>
+            <Input
+              id="fecha_fin"
+              name="fecha_fin"
+              type="date"
+              value={formData.fecha_fin}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="presupuesto">Presupuesto</Label>
+            <Input
+              id="presupuesto"
+              name="presupuesto"
+              type="number"
+              value={formData.presupuesto}
+              onChange={handleChange}
+              required
+            />
+          </div>
           {error && <div className="text-red-500">{error}</div>}
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="border-gray-300 text-gray-600 hover:bg-gray-100"
+          >
             Cancelar
           </Button>
-          <Button type="submit">Crear Obra</Button>
+          <Button
+            type="submit"
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            Crear Obra
+          </Button>
         </CardFooter>
       </form>
     </Card>
