@@ -92,6 +92,7 @@ export function CrearObraForm({ onObraCreated, onCancel }: CrearObraFormProps) {
         toast({
           title: "Obra Creada",
           description: "La obra ha sido creada exitosamente.",
+          variant: "success",
         });
       } else {
         const errorData = await response.json();
@@ -281,7 +282,7 @@ export function CrearObraForm({ onObraCreated, onCancel }: CrearObraFormProps) {
           </Button>
           <Button
             type="submit"
-            className="bg-purple-600 hover:bg-purple-700 text-white"
+            className="bg-blue-100 hover:bg-blue-200 text-blue-600"
           >
             Crear Obra
           </Button>

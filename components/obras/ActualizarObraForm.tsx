@@ -315,7 +315,7 @@ export function ActualizarObraForm({
           </Button>
           <Button
             type="submit"
-            className="bg-purple-600 hover:bg-purple-700 text-white"
+            className="bg-blue-100 hover:bg-blue-200 text-blue-600"
           >
             Actualizar Obra
           </Button>

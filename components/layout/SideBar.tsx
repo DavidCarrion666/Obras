@@ -12,10 +12,10 @@ export function Sidebar({ onNavigate }: SidebarProps) {
     <div className="bg-gray-50 text-gray-700 w-64 h-full flex flex-col py-7 px-4">
       <div className="mb-6 flex flex-col items-center space-y-4">
         <Image
-          src="/GobiernoDelEncuentro.svg"
-          alt="Gobierno del Encuentro"
-          width={180}
-          height={60}
+          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-S8K6Pa8ABQkqcAH7fNJ9rENAO5YZlW.png"
+          alt="Escudo de Ecuador"
+          width={100}
+          height={100}
           className="mb-4"
         />
         <div className="h-[1px] w-full bg-gray-200" />
@@ -23,7 +23,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
       <nav className="flex-grow space-y-2">
         <Button
           variant="ghost"
-          className="w-full justify-start mb-2 hover:bg-purple-50 text-gray-600 hover:text-purple-700"
+          className="w-full justify-start mb-2 hover:bg-blue-50 text-gray-600 hover:text-blue-600"
           onClick={() => onNavigate("home")}
         >
           <Home className="mr-2 h-4 w-4" />
@@ -31,7 +31,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         </Button>
         <Button
           variant="ghost"
-          className="w-full justify-start mb-2 hover:bg-purple-50 text-gray-600 hover:text-purple-700"
+          className="w-full justify-start mb-2 hover:bg-blue-50 text-gray-600 hover:text-blue-600"
           onClick={() => onNavigate("map")}
         >
           <MapPin className="mr-2 h-4 w-4" />
@@ -39,7 +39,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         </Button>
         <Button
           variant="ghost"
-          className="w-full justify-start mb-2 hover:bg-purple-50 text-gray-600 hover:text-purple-700"
+          className="w-full justify-start mb-2 hover:bg-blue-50 text-gray-600 hover:text-blue-600"
           onClick={() => onNavigate("info")}
         >
           <BarChart2 className="mr-2 h-4 w-4" />
@@ -48,7 +48,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
       </nav>
       <div className="mt-auto pt-4 border-t border-gray-200">
         <Image
-          src="/gobierno-logo.png"
+          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imagen_2025-01-15_222154845-kdi5OHwbZPbUuPYWLb0nNH7wNlNgLi.png"
           alt="Gobierno del Encuentro"
           width={150}
           height={50}

@@ -150,7 +150,8 @@ export function Recursos({ obraId }: RecursosProps) {
         body: JSON.stringify({ actividadId: selectedActividadId }),
       });
       if (!response.ok) {
-        throw new Error("Error al añadir la actividad");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al añadir la actividad");
       }
       await fetchActividades();
       setIsDialogOpen(false);
@@ -163,7 +164,10 @@ export function Recursos({ obraId }: RecursosProps) {
       console.error("Error:", error);
       toast({
         title: "Error",
-        description: "No se pudo añadir la actividad.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "No se pudo añadir la actividad.",
         variant: "destructive",
       });
     }
@@ -227,7 +231,7 @@ export function Recursos({ obraId }: RecursosProps) {
         <div className="mb-4">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="bg-blue-100 hover:bg-blue-200 text-blue-600">
                 <Plus className="mr-2 h-4 w-4" />
                 Añadir Actividad
               </Button>
@@ -254,7 +258,12 @@ export function Recursos({ obraId }: RecursosProps) {
                   ))}
                 </SelectContent>
               </Select>
-              <Button onClick={handleAddActividad}>Añadir Actividad</Button>
+              <Button
+                className="bg-blue-100 hover:bg-blue-200 text-blue-600"
+                onClick={handleAddActividad}
+              >
+                Añadir Actividad
+              </Button>
             </DialogContent>
           </Dialog>
         </div>
@@ -317,12 +326,14 @@ export function Recursos({ obraId }: RecursosProps) {
                     <TableCell>
                       {editingActivityId === actividad._id ? (
                         <Button
+                          className="bg-blue-100 hover:bg-blue-200 text-blue-600"
                           onClick={() => handleConfirmEdit(actividad._id)}
                         >
                           <Check className="h-4 w-4" />
                         </Button>
                       ) : (
                         <Button
+                          className="bg-blue-100 hover:bg-blue-200 text-blue-600"
                           onClick={() => handleEditActivity(actividad._id)}
                         >
                           <Edit className="h-4 w-4" />
@@ -338,7 +349,10 @@ export function Recursos({ obraId }: RecursosProps) {
               <p className="text-lg mb-4">
                 No hay actividades asignadas a esta obra.
               </p>
-              <Button onClick={() => setIsDialogOpen(true)}>
+              <Button
+                className="bg-blue-100 hover:bg-blue-200 text-blue-600"
+                onClick={() => setIsDialogOpen(true)}
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Añadir Actividad
               </Button>

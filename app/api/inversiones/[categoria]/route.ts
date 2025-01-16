@@ -12,11 +12,13 @@ export async function GET(
   try {
     const inversion = await Inversion.findOne({ categoria });
     if (!inversion) {
+      console.log(`No se encontró inversión para la categoría: ${categoria}`);
       return NextResponse.json(
         { error: "Categoría no encontrada" },
         { status: 404 }
       );
     }
+    console.log(`Inversión encontrada para ${categoria}:`, inversion);
     return NextResponse.json(inversion);
   } catch (error) {
     console.error("Error fetching inversion:", error);

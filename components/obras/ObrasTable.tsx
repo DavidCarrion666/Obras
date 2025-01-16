@@ -13,7 +13,16 @@ import { UbicacionesObra } from "./UbicacionesObra";
 import { Edit, Eye, MapPin, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { Dialog } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 interface Obra {
   _id: string;
@@ -75,6 +84,7 @@ export function ObrasTable({ onSelectObra }: ObrasTableProps) {
     toast({
       title: "Obra Actualizada",
       description: "La obra ha sido actualizada exitosamente.",
+      variant: "success",
     });
   };
 
@@ -93,6 +103,7 @@ export function ObrasTable({ onSelectObra }: ObrasTableProps) {
           toast({
             title: "Obra Eliminada",
             description: "La obra ha sido eliminada exitosamente.",
+            variant: "success",
           });
         } else {
           throw new Error("Error al eliminar la obra");

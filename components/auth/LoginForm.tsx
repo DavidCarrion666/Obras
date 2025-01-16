@@ -41,20 +41,20 @@ export function LoginForm({ onLogin }: LoginFormProps) {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+    <div className="flex h-screen bg-gradient-to-br from-blue-50 to-white">
       <Card className="m-auto w-full max-w-4xl flex overflow-hidden">
         <CardContent className="flex-1 p-6">
           <CardHeader className="p-0 mb-6">
-            <CardTitle className="text-2xl font-bold text-purple-800">
+            <CardTitle className="text-2xl font-bold text-blue-800">
               Iniciar Sesión
             </CardTitle>
-            <CardDescription className="text-purple-600">
+            <CardDescription className="text-blue-600">
               Ingrese sus credenciales para acceder al sistema
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="cedula" className="text-purple-700">
+              <Label htmlFor="cedula" className="text-blue-700">
                 Cédula
               </Label>
               <Input
@@ -63,11 +63,11 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 type="text"
                 required
                 onChange={handleChange}
-                className="border-purple-300 focus:border-purple-500"
+                className="border-blue-300 focus:border-blue-500"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="ruc" className="text-purple-700">
+              <Label htmlFor="ruc" className="text-blue-700">
                 RUC de la Entidad
               </Label>
               <Input
@@ -76,11 +76,11 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 type="text"
                 required
                 onChange={handleChange}
-                className="border-purple-300 focus:border-purple-500"
+                className="border-blue-300 focus:border-blue-500"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-purple-700">
+              <Label htmlFor="username" className="text-blue-700">
                 Nombre de Usuario
               </Label>
               <Input
@@ -89,11 +89,11 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 type="text"
                 required
                 onChange={handleChange}
-                className="border-purple-300 focus:border-purple-500"
+                className="border-blue-300 focus:border-blue-500"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-purple-700">
+              <Label htmlFor="password" className="text-blue-700">
                 Contraseña
               </Label>
               <Input
@@ -102,12 +102,12 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 type="password"
                 required
                 onChange={handleChange}
-                className="border-purple-300 focus:border-purple-500"
+                className="border-blue-300 focus:border-blue-500"
               />
             </div>
             <Button
               type="submit"
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+              className="w-full bg-blue-100 hover:bg-blue-200 text-blue-600"
             >
               <LogIn className="mr-2 h-4 w-4" /> Ingresar
             </Button>
@@ -115,8 +115,8 @@ export function LoginForm({ onLogin }: LoginFormProps) {
         </CardContent>
         <div className="flex-1 relative">
           <Image
-            src="/placeholder.svg?height=600&width=400"
-            alt="Login Image"
+            src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGNvbnN0cnVjdGlvbnxlbnwwfHwwfHx8MA%3D%3D"
+            alt="Construction Site"
             layout="fill"
             objectFit="cover"
           />

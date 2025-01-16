@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { Navbar } from "@/components/layout/Navbar";
-import { Sidebar } from "@/components/layout/SideBar";
+
 import { ObrasTable } from "@/components/obras/ObrasTable";
 import { ObraDetails } from "@/components/obras/ObraDetails";
 import { CrearObraForm } from "@/components/obras/CrearObraForm";
@@ -14,6 +14,7 @@ import { Plus } from "lucide-react";
 import { ToastProvider } from "@/components/ui/toast";
 import { Toaster } from "@/components/ui/toaster";
 import { SearchBar } from "@/components/common/SearchBar";
+import { Sidebar } from "@/components/layout/SideBar";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -48,7 +49,7 @@ export default function Home() {
               <div className="flex justify-between items-center">
                 <Button
                   onClick={() => setShowCrearForm(true)}
-                  className="bg-purple-100 hover:bg-purple-200 text-purple-700"
+                  className="bg-blue-100 hover:bg-blue-200 text-blue-600"
                 >
                   <Plus className="mr-2 h-4 w-4" /> Crear Nueva Obra
                 </Button>

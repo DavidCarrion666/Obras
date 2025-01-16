@@ -70,9 +70,15 @@ export async function POST(
     });
     await obra.save();
 
+    const updatedObra = await Obra.findById(id).populate(
+      "actividades.actividad"
+    );
+    const newActividad =
+      updatedObra.actividades[updatedObra.actividades.length - 1];
+
     return NextResponse.json({
       message: "Actividad asignada correctamente",
-      actividad: obra.actividades[obra.actividades.length - 1],
+      actividad: newActividad,
     });
   } catch (error) {
     console.error("Error adding actividad:", error);

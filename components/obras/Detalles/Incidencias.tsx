@@ -119,7 +119,10 @@ export function Incidencias() {
             <Label htmlFor="documento-incidencia">Adjuntar Documento</Label>
             <Input id="documento-incidencia" type="file" />
           </div>
-          <Button onClick={handleNuevaIncidencia}>
+          <Button
+            onClick={handleNuevaIncidencia}
+            className="bg-blue-100 hover:bg-blue-200 text-blue-600"
+          >
             Registrar Nueva Incidencia
           </Button>
         </div>
@@ -146,6 +149,7 @@ export function Incidencias() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleCerrarIncidencia(incidencia.id)}
+                        className="bg-blue-100 hover:bg-blue-200 text-blue-600"
                       >
                         Cerrar Incidencia
                       </Button>

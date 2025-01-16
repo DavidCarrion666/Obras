@@ -232,7 +232,7 @@ export function UbicacionesObra({
           </div>
           <Button
             onClick={handleAddUbicacion}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+            className="w-full bg-blue-100 hover:bg-blue-200 text-blue-600"
           >
             Añadir Ubicación
           </Button>
