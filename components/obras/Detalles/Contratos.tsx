@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -25,6 +27,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Pencil, Trash2 } from "lucide-react";
 
 interface Contrato {
   _id: string;
@@ -49,7 +59,7 @@ interface ContratosProps {
 
 export function Contratos({ obraId }: ContratosProps) {
   const [contratos, setContratos] = useState<Contrato[]>([]);
-  const [nuevoContrato, setNuevoContrato] = useState<Partial<Contrato>>({
+  const [formData, setFormData] = useState<Partial<Contrato>>({
     tipoContrato: "Principal",
     nombreContratista: "",
     monto: 0,
@@ -59,11 +69,18 @@ export function Contratos({ obraId }: ContratosProps) {
     entidadFinanciamiento: "",
     avanceContrato: 0,
   });
+  const [editingContratoId, setEditingContratoId] = useState<string | null>(
+    null
+  );
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [contratoToDelete, setContratoToDelete] = useState<Contrato | null>(
+    null
+  );
   const { toast } = useToast();
 
   useEffect(() => {
     fetchContratos();
-  }, [obraId]);
+  }, []);
 
   const fetchContratos = async () => {
     try {
@@ -84,54 +101,133 @@ export function Contratos({ obraId }: ContratosProps) {
     }
   };
 
-  const handleNuevoContrato = async () => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "number" ? Number.parseFloat(value) : value,
+    }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      const response = await fetch(`/api/obras/${obraId}/contratos`, {
-        method: "POST",
+      const url = editingContratoId
+        ? `/api/obras/${obraId}/contratos/${editingContratoId}`
+        : `/api/obras/${obraId}/contratos`;
+      const method = editingContratoId ? "PATCH" : "POST";
+
+      const response = await fetch(url, {
+        method: method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(nuevoContrato),
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
-        const createdContrato = await response.json();
-        setContratos([...contratos, createdContrato]);
-        setNuevoContrato({
-          tipoContrato: "Principal",
-          nombreContratista: "",
-          monto: 0,
-          fechaContrato: "",
-          fechaFinContrato: "",
-          fuenteFinanciamiento: "Recursos Fiscales",
-          entidadFinanciamiento: "",
-          avanceContrato: 0,
-        });
+        const data = await response.json();
+        if (editingContratoId) {
+          setContratos(contratos.map((c) => (c._id === data._id ? data : c)));
+          setEditingContratoId(null);
+          resetForm();
+        } else {
+          setContratos([...contratos, data]);
+        }
         toast({
           title: "Éxito",
-          description: "Contrato registrado correctamente.",
+          description: editingContratoId
+            ? "Contrato actualizado correctamente."
+            : "Contrato registrado correctamente.",
           variant: "success",
         });
       } else {
-        throw new Error("Error al crear el contrato");
+        throw new Error(
+          editingContratoId
+            ? "Error al actualizar el contrato"
+            : "Error al crear el contrato"
+        );
       }
     } catch (error) {
       console.error("Error:", error);
       toast({
         title: "Error",
-        description: "No se pudo registrar el contrato.",
+        description: editingContratoId
+          ? "No se pudo actualizar el contrato."
+          : "No se pudo registrar el contrato.",
         variant: "destructive",
       });
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNuevoContrato({ ...nuevoContrato, [name]: value });
+  const handleEdit = (contrato: Contrato) => {
+    setFormData({
+      tipoContrato: contrato.tipoContrato,
+      nombreContratista: contrato.nombreContratista,
+      monto: contrato.monto,
+      fechaContrato: contrato.fechaContrato.split("T")[0], // Formatear la fecha para el input
+      fechaFinContrato: contrato.fechaFinContrato.split("T")[0], // Formatear la fecha para el input
+      fuenteFinanciamiento: contrato.fuenteFinanciamiento,
+      entidadFinanciamiento: contrato.entidadFinanciamiento,
+      avanceContrato: contrato.avanceContrato,
+    });
+    setEditingContratoId(contrato._id);
   };
 
-  const handleSelectChange = (name: string, value: string) => {
-    setNuevoContrato({ ...nuevoContrato, [name]: value });
+  const handleDelete = (contrato: Contrato) => {
+    setContratoToDelete(contrato);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!contratoToDelete) return;
+
+    try {
+      const response = await fetch(
+        `/api/obras/${obraId}/contratos/${contratoToDelete._id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        setContratos(contratos.filter((c) => c._id !== contratoToDelete._id));
+        setIsDeleteDialogOpen(false);
+        setContratoToDelete(null);
+        toast({
+          title: "Éxito",
+          description: "Contrato eliminado correctamente.",
+          variant: "success",
+        });
+      } else {
+        throw new Error("Error al eliminar el contrato");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el contrato.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      tipoContrato: "Principal",
+      nombreContratista: "",
+      monto: 0,
+      fechaContrato: "",
+      fechaFinContrato: "",
+      fuenteFinanciamiento: "Recursos Fiscales",
+      entidadFinanciamiento: "",
+      avanceContrato: 0,
+    });
+    setEditingContratoId(null);
   };
 
   return (
@@ -143,15 +239,15 @@ export function Contratos({ obraId }: ContratosProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 mb-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="tipoContrato">Tipo de Contrato</Label>
               <Select
+                value={formData.tipoContrato}
                 onValueChange={(value) =>
                   handleSelectChange("tipoContrato", value)
                 }
-                value={nuevoContrato.tipoContrato}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar tipo" />
@@ -168,9 +264,8 @@ export function Contratos({ obraId }: ContratosProps) {
               <Input
                 id="nombreContratista"
                 name="nombreContratista"
-                value={nuevoContrato.nombreContratista}
+                value={formData.nombreContratista}
                 onChange={handleInputChange}
-                placeholder="Ingrese nombre del contratista"
               />
             </div>
           </div>
@@ -181,9 +276,8 @@ export function Contratos({ obraId }: ContratosProps) {
                 id="monto"
                 name="monto"
                 type="number"
-                value={nuevoContrato.monto}
+                value={formData.monto}
                 onChange={handleInputChange}
-                placeholder="Ingrese monto"
               />
             </div>
             <div>
@@ -192,7 +286,7 @@ export function Contratos({ obraId }: ContratosProps) {
                 id="fechaContrato"
                 name="fechaContrato"
                 type="date"
-                value={nuevoContrato.fechaContrato}
+                value={formData.fechaContrato}
                 onChange={handleInputChange}
               />
             </div>
@@ -204,7 +298,7 @@ export function Contratos({ obraId }: ContratosProps) {
                 id="fechaFinContrato"
                 name="fechaFinContrato"
                 type="date"
-                value={nuevoContrato.fechaFinContrato}
+                value={formData.fechaFinContrato}
                 onChange={handleInputChange}
               />
             </div>
@@ -213,10 +307,10 @@ export function Contratos({ obraId }: ContratosProps) {
                 Fuente de Financiamiento
               </Label>
               <Select
+                value={formData.fuenteFinanciamiento}
                 onValueChange={(value) =>
                   handleSelectChange("fuenteFinanciamiento", value)
                 }
-                value={nuevoContrato.fuenteFinanciamiento}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar fuente" />
@@ -249,9 +343,8 @@ export function Contratos({ obraId }: ContratosProps) {
               <Input
                 id="entidadFinanciamiento"
                 name="entidadFinanciamiento"
-                value={nuevoContrato.entidadFinanciamiento}
+                value={formData.entidadFinanciamiento}
                 onChange={handleInputChange}
-                placeholder="Ingrese entidad de financiamiento"
               />
             </div>
             <div>
@@ -262,50 +355,91 @@ export function Contratos({ obraId }: ContratosProps) {
                 type="number"
                 min="0"
                 max="100"
-                value={nuevoContrato.avanceContrato}
+                value={formData.avanceContrato}
                 onChange={handleInputChange}
-                placeholder="Ingrese avance del contrato"
               />
             </div>
           </div>
-          <Button
-            onClick={handleNuevoContrato}
-            className="bg-blue-100 hover:bg-blue-200 text-blue-600"
-          >
-            Registrar Nuevo Contrato
-          </Button>
-        </div>
-        <div className="mt-6">
-          <h4 className="font-semibold mb-2">Contratos Registrados</h4>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Contratista</TableHead>
-                <TableHead>Monto (USD)</TableHead>
-                <TableHead>Fecha Inicio</TableHead>
-                <TableHead>Fecha Fin</TableHead>
-                <TableHead>Avance (%)</TableHead>
+          <div className="flex justify-end space-x-2">
+            <Button type="button" variant="outline" onClick={resetForm}>
+              Cancelar {editingContratoId ? "Edición" : ""}
+            </Button>
+            <Button type="submit">
+              {editingContratoId ? "Actualizar Contrato" : "Registrar Contrato"}
+            </Button>
+          </div>
+        </form>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Contratista</TableHead>
+              <TableHead>Monto (USD)</TableHead>
+              <TableHead>Fecha Inicio</TableHead>
+              <TableHead>Fecha Fin</TableHead>
+              <TableHead>Avance (%)</TableHead>
+              <TableHead>Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {contratos.map((contrato) => (
+              <TableRow key={contrato._id}>
+                <TableCell>{contrato.tipoContrato}</TableCell>
+                <TableCell>{contrato.nombreContratista}</TableCell>
+                <TableCell>{contrato.monto.toFixed(2)}</TableCell>
+                <TableCell>
+                  {new Date(contrato.fechaContrato).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  {new Date(contrato.fechaFinContrato).toLocaleDateString()}
+                </TableCell>
+                <TableCell>{contrato.avanceContrato}%</TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEdit(contrato)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(contrato)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {contratos.map((contrato) => (
-                <TableRow key={contrato._id}>
-                  <TableCell>{contrato.tipoContrato}</TableCell>
-                  <TableCell>{contrato.nombreContratista}</TableCell>
-                  <TableCell>{contrato.monto.toFixed(2)}</TableCell>
-                  <TableCell>
-                    {new Date(contrato.fechaContrato).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(contrato.fechaFinContrato).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>{contrato.avanceContrato}%</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+            ))}
+          </TableBody>
+        </Table>
+
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirmar Eliminación</DialogTitle>
+            </DialogHeader>
+            <p>¿Está seguro de que desea eliminar este contrato?</p>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setIsDeleteDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={confirmDelete}
+              >
+                Eliminar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
