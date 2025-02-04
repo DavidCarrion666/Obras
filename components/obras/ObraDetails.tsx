@@ -2,11 +2,11 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Recursos } from "./detalles/Recursos";
-import { Presupuesto } from "./detalles/Presupuesto";
-import { Contratos } from "./detalles/Contratos";
-import { Inspeccion } from "./detalles/Inspeccion";
-import { Incidencias } from "./detalles/Incidencias";
+import { Recursos } from "./Detalles/Recursos";
+import { Presupuesto } from "./Detalles/Presupuesto";
+import { Contratos } from "./Detalles/Contratos";
+import { Inspeccion } from "./Detalles/Inspeccion";
+import { Incidencias } from "./Detalles/Incidencias";
 
 interface Obra {
   _id: string;
