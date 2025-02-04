@@ -1,113 +1,63 @@
-import { NextResponse } from "next/server";
-import dbConnect from "@/lib/database";
-import Inspeccion from "@/models/Inspeccion";
-import Actividad from "@/models/Actividad";
-import { writeFile } from "fs/promises";
-import path from "path";
+import { type NextRequest, NextResponse } from "next/server";
+import {
+  crearInspeccion,
+  obtenerInspecciones,
+} from "@/controllers/inspeccionController";
 
-export async function GET(
-  request: Request,
+export async function POST(
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    await dbConnect();
-    const { id } = params;
-    const inspecciones = await Inspeccion.find({ obraId: id })
-      .populate({
-        path: "actividadId",
-        model: Actividad,
-        select: "nombre descripcion fechaInicio fechaFin",
-      })
-      .lean();
+    const formData = await request.formData();
+    const dataString = formData.get("data") as string;
+    console.log("Received data string:", dataString);
 
-    // Transform the data to ensure actividadId is an object with a nombre property
-    const transformedInspecciones = inspecciones.map((inspeccion) => ({
-      ...inspeccion,
-      actividadId: inspeccion.actividadId
-        ? {
-            ...inspeccion.actividadId,
-            nombre: inspeccion.actividadId.nombre || "Sin nombre",
-          }
-        : null,
-    }));
+    let data;
+    try {
+      data = JSON.parse(dataString);
+    } catch (parseError) {
+      console.error("Error parsing JSON data:", parseError);
+      return NextResponse.json({ error: "Invalid JSON data" }, { status: 400 });
+    }
 
-    return NextResponse.json(transformedInspecciones);
+    console.log("Parsed data:", data);
+
+    const files: { [key: string]: File[] } = {};
+
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        if (!files[key]) {
+          files[key] = [];
+        }
+        files[key].push(value);
+      }
+    }
+
+    console.log("Files received:", Object.keys(files));
+
+    const result = await crearInspeccion(params.id, data, files);
+    console.log("Inspection creation result:", result);
+    return result;
   } catch (error) {
-    console.error("Error fetching inspecciones:", error);
+    console.error("Error in POST /api/obras/[id]/inspecciones:", error);
     return NextResponse.json(
-      { error: "Error interno del servidor" },
+      { error: "Error interno del servidor", details: error.message },
       { status: 500 }
     );
   }
 }
 
-export async function POST(
-  request: Request,
+export async function GET(
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    await dbConnect();
-    const { id } = params;
-
-    const formData = await request.formData();
-    const actividadId = formData.get("actividadId") as string;
-    const observaciones = formData.get("observaciones") as string;
-    const problemas = JSON.parse(formData.get("problemas") as string);
-
-    const inspeccion = new Inspeccion({
-      obraId: id,
-      actividadId,
-      fecha: new Date(),
-      observaciones,
-      problemas: await Promise.all(
-        problemas.map(async (problema: any) => {
-          const evidencias = await Promise.all(
-            problema.evidencias.map(async (file: File) => {
-              const bytes = await file.arrayBuffer();
-              const buffer = Buffer.from(bytes);
-              const fileName = `${Date.now()}-${file.name}`;
-              const filePath = path.join(
-                process.cwd(),
-                "public",
-                "uploads",
-                fileName
-              );
-              await writeFile(filePath, buffer);
-              return `/uploads/${fileName}`;
-            })
-          );
-
-          const reportesSecundarios = await Promise.all(
-            problema.reportesSecundarios.map(async (file: File) => {
-              const bytes = await file.arrayBuffer();
-              const buffer = Buffer.from(bytes);
-              const fileName = `${Date.now()}-${file.name}`;
-              const filePath = path.join(
-                process.cwd(),
-                "public",
-                "uploads",
-                fileName
-              );
-              await writeFile(filePath, buffer);
-              return `/uploads/${fileName}`;
-            })
-          );
-
-          return {
-            descripcion: problema.descripcion,
-            evidencias,
-            reportesSecundarios,
-          };
-        })
-      ),
-    });
-
-    await inspeccion.save();
-    return NextResponse.json(inspeccion, { status: 201 });
+    return await obtenerInspecciones(params.id);
   } catch (error) {
-    console.error("Error creating inspeccion:", error);
+    console.error("Error in GET /api/obras/[id]/inspecciones:", error);
     return NextResponse.json(
-      { error: "Error interno del servidor" },
+      { error: "Error interno del servidor", details: error.message },
       { status: 500 }
     );
   }

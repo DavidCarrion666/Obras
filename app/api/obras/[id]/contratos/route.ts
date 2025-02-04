@@ -1,46 +1,20 @@
-import { NextResponse } from "next/server";
-import dbConnect from "@/lib/database";
-import Contrato from "@/models/Contrato";
+import type { NextRequest } from "next/server";
+import {
+  crearContrato,
+  obtenerContratos,
+} from "@/controllers/contratoController";
 
 export async function POST(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  try {
-    await dbConnect();
-    const { id } = params;
-    const body = await request.json();
-
-    const newContrato = new Contrato({
-      ...body,
-      obraId: id,
-    });
-
-    await newContrato.save();
-    return NextResponse.json(newContrato, { status: 201 });
-  } catch (error) {
-    console.error("Error creating contrato:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
+  const data = await request.json();
+  return crearContrato(params.id, data);
 }
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  try {
-    await dbConnect();
-    const { id } = params;
-    const contratos = await Contrato.find({ obraId: id });
-    return NextResponse.json(contratos);
-  } catch (error) {
-    console.error("Error fetching contratos:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
+  return obtenerContratos(params.id);
 }

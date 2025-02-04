@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, type Document } from "mongoose";
 
 export interface IUbicacion {
   nombre: string;
@@ -98,13 +98,7 @@ const ObraSchema: Schema = new Schema({
   fecha_inicio: { type: Date, required: true },
   fecha_fin: { type: Date },
   presupuesto: { type: Number, required: true },
-  actividades: [
-    {
-      actividad: { type: Schema.Types.ObjectId, ref: "Actividad" },
-      observacion: { type: String, default: "" },
-      completada: { type: Boolean, default: false },
-    },
-  ],
+  actividades: [ActividadAsignadaSchema],
   devengadoTotal: { type: Number, default: 0 },
   porcentajeAvance: { type: Number, default: 0 },
 });

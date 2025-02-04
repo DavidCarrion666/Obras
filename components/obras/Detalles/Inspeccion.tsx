@@ -30,7 +30,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-
 import {
   Loader2,
   Plus,
@@ -43,6 +42,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { format } from "date-fns";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/porgress";
 
 interface Actividad {
@@ -87,6 +87,8 @@ export function Inspeccion({ obraId }: InspeccionProps) {
   const [problemas, setProblemas] = useState<Problema[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [selectedInspeccion, setSelectedInspeccion] =
+    useState<Inspeccion | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -114,20 +116,24 @@ export function Inspeccion({ obraId }: InspeccionProps) {
 
   const fetchInspecciones = async () => {
     try {
+      setIsLoading(true);
       const response = await fetch(`/api/obras/${obraId}/inspecciones`);
       if (!response.ok) {
-        throw new Error("Error al obtener las inspecciones");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al obtener las inspecciones");
       }
       const data = await response.json();
-      console.log("Inspecciones fetched:", data);
+      console.log("Inspecciones obtenidas:", data);
       setInspecciones(data);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error detallado:", error);
       toast({
         title: "Error",
-        description: "No se pudieron cargar las inspecciones.",
+        description: `No se pudieron cargar las inspecciones: ${error.message}`,
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -176,16 +182,26 @@ export function Inspeccion({ obraId }: InspeccionProps) {
 
     try {
       const formData = new FormData();
-      formData.append("actividadId", selectedActividad);
-      formData.append("observaciones", observaciones);
-      formData.append("problemas", JSON.stringify(problemas));
+      const inspectionData = {
+        actividadId: selectedActividad,
+        observaciones: observaciones,
+        fecha: new Date().toISOString(),
+        estado: "Pendiente" as const,
+        problemas: problemas.map((problema) => ({
+          descripcion: problema.descripcion,
+          estado: "Pendiente" as const,
+        })),
+      };
+
+      formData.append("data", JSON.stringify(inspectionData));
+      console.log("Sending inspection data:", inspectionData);
 
       problemas.forEach((problema, index) => {
         problema.evidencias.forEach((file, fileIndex) => {
-          formData.append(`problema${index}_evidencia${fileIndex}`, file);
+          formData.append(`problema${index}_evidencia`, file);
         });
         problema.reportesSecundarios.forEach((file, fileIndex) => {
-          formData.append(`problema${index}_reporte${fileIndex}`, file);
+          formData.append(`problema${index}_reporte`, file);
         });
       });
 
@@ -195,8 +211,12 @@ export function Inspeccion({ obraId }: InspeccionProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Error al registrar la inspección");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al registrar la inspección");
       }
+
+      const newInspeccion = await response.json();
+      console.log("Nueva inspección registrada:", newInspeccion);
 
       toast({
         title: "Éxito",
@@ -208,10 +228,10 @@ export function Inspeccion({ obraId }: InspeccionProps) {
       setProblemas([]);
       fetchInspecciones();
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error detallado:", error);
       toast({
         title: "Error",
-        description: "No se pudo registrar la inspección.",
+        description: `No se pudo registrar la inspección: ${error.message}`,
         variant: "destructive",
       });
     } finally {
@@ -233,16 +253,12 @@ export function Inspeccion({ obraId }: InspeccionProps) {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return "Fecha no disponible";
-      }
-      return format(date, "dd/MM/yyyy");
-    } catch {
-      return "Fecha no disponible";
-    }
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "Fecha no disponible";
+    const date = new Date(dateString);
+    return isNaN(date.getTime())
+      ? "Fecha inválida"
+      : format(date, "dd/MM/yyyy");
   };
 
   return (
@@ -280,7 +296,7 @@ export function Inspeccion({ obraId }: InspeccionProps) {
                     {actividades.map((actividadObra) => (
                       <SelectItem
                         key={actividadObra._id}
-                        value={actividadObra._id}
+                        value={actividadObra.actividad._id}
                       >
                         {actividadObra.actividad.nombre}
                       </SelectItem>
@@ -452,48 +468,133 @@ export function Inspeccion({ obraId }: InspeccionProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Actividad</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Problemas</TableHead>
-                <TableHead>Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {inspecciones.map((inspeccion) => (
-                <TableRow key={inspeccion._id}>
-                  <TableCell>{formatDate(inspeccion.fecha)}</TableCell>
-                  <TableCell>
-                    {inspeccion.actividadId
-                      ? inspeccion.actividadId.nombre
-                      : "N/A"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getEstadoBadgeColor(inspeccion.estado)}>
-                      {inspeccion.estado}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="bg-purple-50">
-                      {inspeccion.problemas.length} problema(s)
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="hover:bg-purple-50"
-                    >
-                      Ver Detalles
-                    </Button>
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-32">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Actividad</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Problemas</TableHead>
+                  <TableHead>Acciones</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {inspecciones.length > 0 ? (
+                  inspecciones.map((inspeccion) => (
+                    <TableRow key={inspeccion._id}>
+                      <TableCell>{formatDate(inspeccion.fecha)}</TableCell>
+                      <TableCell>
+                        {inspeccion.actividadId
+                          ? inspeccion.actividadId.nombre
+                          : "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={getEstadoBadgeColor(inspeccion.estado)}
+                        >
+                          {inspeccion.estado}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-purple-50">
+                          {inspeccion.problemas.length} problema(s)
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="hover:bg-purple-50"
+                              onClick={() => setSelectedInspeccion(inspeccion)}
+                            >
+                              Ver Detalles
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-3xl">
+                            {selectedInspeccion && (
+                              <Card className="w-full max-w-3xl mx-auto">
+                                <CardHeader>
+                                  <CardTitle>
+                                    Detalles de la Inspección
+                                  </CardTitle>
+                                  <CardDescription>
+                                    Inspección realizada el{" "}
+                                    {formatDate(selectedInspeccion.fecha)}
+                                  </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <h3 className="font-semibold mb-2">
+                                        Actividad
+                                      </h3>
+                                      <p>
+                                        {selectedInspeccion.actividadId
+                                          ?.nombre || "No disponible"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <h3 className="font-semibold mb-2">
+                                        Estado
+                                      </h3>
+                                      <Badge
+                                        className={getEstadoBadgeColor(
+                                          selectedInspeccion.estado
+                                        )}
+                                      >
+                                        {selectedInspeccion.estado}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <h3 className="font-semibold mb-2">
+                                      Observaciones
+                                    </h3>
+                                    <p>{selectedInspeccion.observaciones}</p>
+                                  </div>
+                                  <div>
+                                    <h3 className="font-semibold mb-2">
+                                      Problemas
+                                    </h3>
+                                    {selectedInspeccion.problemas.map(
+                                      (problema, index) => (
+                                        <div
+                                          key={index}
+                                          className="mt-2 p-4 border rounded-md"
+                                        >
+                                          <p className="font-medium">
+                                            Problema {index + 1}:
+                                          </p>
+                                          <p>{problema.descripcion}</p>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                      No hay inspecciones registradas
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

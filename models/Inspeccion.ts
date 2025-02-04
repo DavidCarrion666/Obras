@@ -1,9 +1,18 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, type Document } from "mongoose";
 
-export interface IProblema {
+export interface ISolucion {
+  descripcion: string;
+  fechaImplementacion: Date;
+  responsable: string;
+  documentos: string[]; // Array of file URLs
+}
+
+export interface IProblema extends Document {
   descripcion: string;
   evidencias: string[]; // Array of file URLs
   reportesSecundarios: string[]; // Array of file URLs for secondary reports
+  solucion?: ISolucion;
+  estado: "Pendiente" | "En Proceso" | "Resuelto";
 }
 
 export interface IInspeccion extends Document {
@@ -15,10 +24,23 @@ export interface IInspeccion extends Document {
   estado: "Pendiente" | "En Proceso" | "Completada";
 }
 
+const SolucionSchema: Schema = new Schema({
+  descripcion: { type: String, required: true },
+  fechaImplementacion: { type: Date, required: true },
+  responsable: { type: String, required: true },
+  documentos: [{ type: String }],
+});
+
 const ProblemaSchema: Schema = new Schema({
   descripcion: { type: String, required: true },
   evidencias: [{ type: String }],
   reportesSecundarios: [{ type: String }],
+  solucion: SolucionSchema,
+  estado: {
+    type: String,
+    enum: ["Pendiente", "En Proceso", "Resuelto"],
+    default: "Pendiente",
+  },
 });
 
 const InspeccionSchema: Schema = new Schema({

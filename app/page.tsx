@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { Navbar } from "@/components/layout/Navbar";
-
 import { ObrasTable } from "@/components/obras/ObrasTable";
 import { ObraDetails } from "@/components/obras/ObraDetails";
 import { CrearObraForm } from "@/components/obras/CrearObraForm";

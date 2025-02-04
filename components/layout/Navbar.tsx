@@ -5,7 +5,7 @@ export function Navbar() {
     <nav className="bg-white border-b border-gray-200 text-gray-800 p-4 w-full">
       <div className="container mx-auto flex items-center">
         <Image
-          src="/gobierno-logo.png"
+          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imagen_2025-01-15_222154845-kdi5OHwbZPbUuPYWLb0nNH7wNlNgLi.png"
           alt="Gobierno del Encuentro"
           width={200}
           height={60}

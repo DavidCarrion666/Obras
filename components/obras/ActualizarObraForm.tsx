@@ -93,6 +93,8 @@ export function ActualizarObraForm({
 }: ActualizarObraFormProps) {
   const [formData, setFormData] = useState({
     ...obra,
+    fecha_inicio: obra.fecha_inicio || "",
+    fecha_fin: obra.fecha_fin || "",
     motivoActualizacion: "",
   });
   const [error, setError] = useState<string | null>(null);
@@ -139,7 +141,15 @@ export function ActualizarObraForm({
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type } = e.target;
+    if (type === "date") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value ? new Date(value).toISOString() : "",
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   return (
@@ -264,7 +274,9 @@ export function ActualizarObraForm({
               id="fecha_inicio"
               name="fecha_inicio"
               type="date"
-              value={formData.fecha_inicio.split("T")[0]}
+              value={
+                formData.fecha_inicio ? formData.fecha_inicio.split("T")[0] : ""
+              }
               onChange={handleChange}
               required
             />

@@ -29,6 +29,8 @@ interface Actividad {
   actividad: {
     _id: string;
     nombre: string;
+    fechaInicio: string;
+    fechaFin: string;
   };
   observacion: string;
   completada: boolean;
@@ -36,7 +38,7 @@ interface Actividad {
 
 export function Presupuesto({ obraId }: PresupuestoProps) {
   const [montoTotal, setMontoTotal] = useState<number | null>(null);
-  const [devengadoTotal, setDevengadoTotal] = useState(0);
+  const [devengadoTotal, setDevengadoTotal] = useState<number | null>(0);
   const [porcentajeAvance, setPorcentajeAvance] = useState(0);
   const [ponderacionActiva, setPonderacionActiva] = useState(false);
   const [actividades, setActividades] = useState<Actividad[]>([]);
@@ -101,9 +103,9 @@ export function Presupuesto({ obraId }: PresupuestoProps) {
     }
   };
 
-  const handleDevengadoChange = (value: number) => {
+  const handleDevengadoChange = (value: number | null) => {
     setDevengadoTotal(value);
-    const newPorcentaje = montoTotal ? (value / montoTotal) * 100 : 0;
+    const newPorcentaje = montoTotal && value ? (value / montoTotal) * 100 : 0;
     setPorcentajeAvance(newPorcentaje);
   };
 
@@ -172,6 +174,9 @@ export function Presupuesto({ obraId }: PresupuestoProps) {
               id="monto-total"
               type="number"
               value={montoTotal !== null ? montoTotal : ""}
+              onChange={(e) =>
+                setMontoTotal(e.target.value ? Number(e.target.value) : null)
+              }
               disabled
             />
           </div>
@@ -180,8 +185,12 @@ export function Presupuesto({ obraId }: PresupuestoProps) {
             <Input
               id="devengado-total"
               type="number"
-              value={devengadoTotal}
-              onChange={(e) => handleDevengadoChange(Number(e.target.value))}
+              value={devengadoTotal !== null ? devengadoTotal : ""}
+              onChange={(e) =>
+                handleDevengadoChange(
+                  e.target.value ? Number(e.target.value) : null
+                )
+              }
               disabled={!isEditing}
             />
           </div>

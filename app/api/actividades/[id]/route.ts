@@ -1,15 +1,15 @@
 import type { NextRequest } from "next/server";
 import {
-  obtenerObra,
-  actualizarObra,
-  eliminarObra,
-} from "@/controllers/obraController";
+  obtenerActividad,
+  actualizarActividad,
+  eliminarActividad,
+} from "@/controllers/actividadController";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  return obtenerObra(params.id);
+  return obtenerActividad(params.id);
 }
 
 export async function PATCH(
@@ -17,12 +17,12 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   const data = await request.json();
-  return actualizarObra(params.id, data);
+  return actualizarActividad(params.id, data);
 }
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  return eliminarObra(params.id);
+  return eliminarActividad(params.id);
 }
